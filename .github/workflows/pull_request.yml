@@ -82,20 +82,25 @@ jobs:
         run: yarn install --frozen-lockfile --prefer-offline
 
       ##########################################################################
-      # Yarn test.
+      # Set ENV vars
       ##########################################################################
 
-      - run: yarn test
-
-      ##########################################################################
-      # Build extension.
-      ##########################################################################
+      - if: github.event_name == 'pull_request'
+        name: "set env.commit_sha from latest commit in PR"
+        run: echo "commit_sha=${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
+      - if: github.event_name == 'push'
+        name: "set env.commit_sha from commit or merge commit"
+        run: echo "commit_sha=${{ github.sha }}" >> $GITHUB_ENV
 
       - name: "set env.short_sha"
         run: echo "short_sha=`echo "${{ env.commit_sha }}" | cut -c1-8`" >> $GITHUB_ENV
 
       - name: set env.webworker_url
         run: echo "webworker_url=https://coral-xyz.github.io/backpack/background-scripts/${{ env.short_sha }}/service-worker-loader.html" >> $GITHUB_ENV
+
+      ##########################################################################
+      # Build extension.
+      ##########################################################################
 
       - name: "tag build version"
         run: pushd ./packages/app-extension && ./scripts/version.sh latest-${{ github.run_number }} && popd
@@ -120,17 +125,16 @@ jobs:
         run: yarn build
 
       ##########################################################################
+      # Yarn test.
+      ##########################################################################
+
+      - run: yarn test
+
+      ##########################################################################
       # GitHub Pages.
       ##########################################################################
 
       - run: cd packages/background && yarn build:html
-
-      - if: github.event_name == 'pull_request'
-        name: "set env.commit_sha from latest commit in PR"
-        run: echo "commit_sha=${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
-      - if: github.event_name == 'push'
-        name: "set env.commit_sha from commit or merge commit"
-        run: echo "commit_sha=${{ github.sha }}" >> $GITHUB_ENV
 
       - name: Deploy background html
         uses: peaceiris/actions-gh-pages@v3
