@@ -12,7 +12,6 @@ import {
   useBlockchainTokensSorted,
   useKeyringStoreState,
   useSolanaConnectionUrl,
-  useTotal,
 } from "@coral-xyz/recoil";
 import { useForm } from "react-hook-form";
 import { KeyboardAvoidingView, Pressable, Text, View } from "react-native";
@@ -47,7 +46,11 @@ const UnlockedScreen = () => {
   const background = useBackgroundClient();
   const navigate = useNavigate();
   const wallet = useActiveWallet();
-  const { totalBalance, totalChange, percentChange } = useTotal();
+  const { totalBalance, totalChange, percentChange } = {
+    totalBalance: 0,
+    totalChange: 0,
+    percentChange: 0,
+  }; //useTotal();
   const tokenAccountsSorted = useBlockchainTokensSorted(Blockchain.SOLANA);
   const connectionUrl = useSolanaConnectionUrl();
   console.log(wallet.publicKey.toString());
